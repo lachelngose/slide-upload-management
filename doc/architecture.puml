@@ -1,0 +1,26 @@
+@startuml
+title Large-Scale Image Upload Server Architecture
+
+actor User
+
+User --> WebServer : Upload Request
+WebServer --> ObjectStorage : Upload Image
+WebServer --> QueueService : Enqueue Image Processing
+
+QueueService --> WorkerNode1 : Dispatch Processing Task
+QueueService --> WorkerNode2 : Dispatch Processing Task
+QueueService --> WorkerNodeN : Dispatch Processing Task
+
+WorkerNode1 --> ImageProcessingService : Split and Process
+WorkerNode2 --> ImageProcessingService : Split and Process
+WorkerNodeN --> ImageProcessingService : Split and Process
+
+ImageProcessingService --> DistributedStorage : Store Processed Chunks
+ImageProcessingService --> MessageQueue : Notify Result Ready
+
+MessageQueue --> AggregatorService : Aggregate Processed Data
+AggregatorService --> DistributedStorage : Retrieve Processed Chunks
+AggregatorService --> WebServer : Send Aggregated Result
+
+WebServer --> User : Final Image Response
+@enduml
