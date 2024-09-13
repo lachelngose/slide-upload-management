@@ -1,26 +1,44 @@
 @startuml
-title Large-Scale Image Upload Server Architecture
 
-actor User
+actor Client as 사용자
 
-User --> WebServer : Upload Request
-WebServer --> ObjectStorage : Upload Image
-WebServer --> QueueService : Enqueue Image Processing
+package "AWS Cloud" {
+    node S3 as SlideStorage
+    node API_Gateway as APIGateway
+    node Lambda_Handler as RequestHandler
+    database RDS as ResultDB
+    node EC2 as InferenceWorker
+}
 
-QueueService --> WorkerNode1 : Dispatch Processing Task
-QueueService --> WorkerNode2 : Dispatch Processing Task
-QueueService --> WorkerNodeN : Dispatch Processing Task
+package "Kafka Cluster" {
+    [Kafka Broker 1] as KafkaBroker1
+    [Kafka Broker 2] as KafkaBroker2
+    [Kafka Broker 3] as KafkaBroker3
+    [Zookeeper] as Zookeeper
+}
 
-WorkerNode1 --> ImageProcessingService : Split and Process
-WorkerNode2 --> ImageProcessingService : Split and Process
-WorkerNodeN --> ImageProcessingService : Split and Process
+package "Monitoring & Logging" {
+    [CloudWatch] as CloudWatch
+    [X-Ray] as XRay
+}
 
-ImageProcessingService --> DistributedStorage : Store Processed Chunks
-ImageProcessingService --> MessageQueue : Notify Result Ready
+Client -> APIGateway : POST /slides/upload (이미지 업로드 요청)
+APIGateway -> RequestHandler : Lambda 호출 (이미지 처리)
+RequestHandler -> SlideStorage : S3에 슬라이드 이미지 저장
+RequestHandler -> KafkaBroker1 : 분석 요청 메시지 전송 (Kafka Producer)
 
-MessageQueue --> AggregatorService : Aggregate Processed Data
-AggregatorService --> DistributedStorage : Retrieve Processed Chunks
-AggregatorService --> WebServer : Send Aggregated Result
+KafkaBroker1 -> KafkaBroker2 : 메시지 복제
+KafkaBroker1 -> KafkaBroker3 : 메시지 복제
+KafkaBroker1 -> Zookeeper : 클러스터 상태 모니터링
 
-WebServer --> User : Final Image Response
+KafkaBroker1 -> InferenceWorker : 분석 요청 메시지 전송 (Kafka Consumer)
+InferenceWorker -> ResultDB : 분석 결과 저장
+
+Client -> APIGateway : GET /slides/result/{id} (결과 요청)
+APIGateway -> ResultDB : 결과 조회
+ResultDB -> Client : 분석 결과 반환
+
+RequestHandler -> CloudWatch : 로그 전송 (Lambda)
+InferenceWorker -> XRay : 분산 트랜잭션 추적
+
 @enduml
