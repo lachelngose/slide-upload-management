@@ -1,4 +1,4 @@
 package org.example.router
 
-class FileUploadRouter {
+class SlideUploadRouter {
 }

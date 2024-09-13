@@ -11,35 +11,87 @@ spring:
       max-file-size: 20GB
       max-request-size: 20GB
 
-  data:
-    mongodb:
-      uri: mongodb://localhost:27017/slideupload
-      database: slideupload
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    type: com.zaxxer.hikari.HikariDataSource
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 5
+      idle-timeout: 30000
+      max-lifetime: 1800000
+      connection-timeout: 20000
+      leak-detection-threshold: 2000
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+      naming:
+        physical-strategy: org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        enable_lazy_load_no_trans: true
 
   cloud:
     aws:
       s3:
         bucket: slide-upload-bucket
       region:
-        static: us-west-2
+        static: ap-northeast-2
+      credentials:
+        access-key: ${AWS_ACCESS_KEY}
+        secret-key: ${AWS_SECRET_KEY}
+      multipart:
+        part-size: 10MB
+        enable-transfer-acceleration: true
 
   kafka:
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: ${KAFKA_SERVER}
     consumer:
       group-id: slide-upload-group
       auto-offset-reset: earliest
+      enable-auto-commit: false
+      max-poll-records: 500
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      acks: all
+      retries: 10
+      linger-ms: 5
 
 server:
   port: 8080
 
 logging:
   level:
-    org:
-      springframework: INFO
-    com:
-      example: DEBUG
+    root: debug
+    org.hibernate.type: debug
+    web: debug
   file:
     name: logs/slide-upload-management.log
+  logback:
+    rollingpolicy:
+      file-name-pattern: logs/slide-upload-management.%d{yyyy-MM-dd}.%i.log
+      max-file-size: 100MB
+      max-history: 7
+      total-size-cap: 3GB
+    appenders:
+      console:
+        name: STDOUT
+        pattern: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+      file:
+        name: FILE
+        fileName: logs/slide-upload-management.log
+        max-file-size: 100MB
+        max-history: 7
+        total-size-cap: 3GB
+
+management:
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+        step: 1m

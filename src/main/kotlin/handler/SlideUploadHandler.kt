@@ -1,4 +1,4 @@
 package org.example.handler
 
-class FileUploadHandler {
+class SlideUploadHandler {
 }
