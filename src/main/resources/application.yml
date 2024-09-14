@@ -1,3 +1,6 @@
+server:
+  port: 8080
+
 spring:
   application:
     name: slide-upload-management
@@ -53,17 +56,24 @@ spring:
     consumer:
       group-id: slide-upload-group
       auto-offset-reset: earliest
-      enable-auto-commit: false
       max-poll-records: 500
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
       acks: all
       retries: 10
-      linger-ms: 5
-
-server:
-  port: 8080
+    properties:
+      sasl:
+        mechanism: PLAIN
+        jaas:
+          config: org.apache.kafka.common.security.plain.PlainLoginModule required username=${KAFKA_USERNAME} password=${KAFKA_PASSWORD};
+      security:
+        protocol: SASL_SSL
+      session:
+        timeout:
+          ms: 45000
 
 logging:
   level:
