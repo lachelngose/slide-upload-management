@@ -1,4 +1,4 @@
-package org.example.service
+package org.example.domain.service
 
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
@@ -8,7 +8,7 @@ import software.amazon.awssdk.transfer.s3.progress.LoggingTransferListener
 import java.nio.file.Paths
 
 @Service
-class S3Service(private val s3TransferManager: S3TransferManager) {
+class SlideManagementService(private val s3TransferManager: S3TransferManager) {
     @Value("\${spring.cloud.aws.s3.bucket}")
     lateinit var bucketName: String
 
