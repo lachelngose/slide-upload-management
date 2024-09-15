@@ -17,6 +17,7 @@ class DatabaseConfig(
     @Value("\${spring.datasource.hikari.max-lifetime}") private val maxLifetime: Long,
     @Value("\${spring.datasource.hikari.connection-timeout}") val connectionTimeout: Long,
     @Value("\${spring.datasource.hikari.leak-detection-threshold}") private val leakDetectionThreshold: Long,
+    @Value("\${spring.datasource.driver-class-name}") private val driverClassName: String,
 ) {
 
     @Bean
@@ -31,6 +32,7 @@ class DatabaseConfig(
         dataSource.maxLifetime = maxLifetime
         dataSource.connectionTimeout = connectionTimeout
         dataSource.leakDetectionThreshold = leakDetectionThreshold
+        dataSource.driverClassName = driverClassName
         return dataSource
     }
 }
