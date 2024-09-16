@@ -27,6 +27,10 @@ class SlideAnalysisJpaService(
         ).toList()
     }
 
+    fun getLatestAnalysisRequestBySlideId(slideId: UUID): AnalysisRequest? {
+        return analysisRequestRepository.findFirstBySlideIdOrderByCreatedAtDesc(slideId)
+    }
+
     fun getAnalysisRequestList(offset: Long, limit: Long): List<AnalysisRequest> {
         return analysisRequestRepository.findAllOrderByCreatedAt(
             PageRequest.of(offset.toInt(), limit.toInt())

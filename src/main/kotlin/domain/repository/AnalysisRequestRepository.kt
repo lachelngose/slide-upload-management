@@ -12,4 +12,6 @@ interface AnalysisRequestRepository: JpaRepository<AnalysisRequest, Long> {
     fun findAllOrderByCreatedAt(pageable: Pageable): Page<AnalysisRequest>
 
     fun findAllBySlideIdOrderByCreatedAt(slideId: UUID, pageable: Pageable): Page<AnalysisRequest>
+
+    fun findFirstBySlideIdOrderByCreatedAtDesc(slideId: UUID): AnalysisRequest?
 }
